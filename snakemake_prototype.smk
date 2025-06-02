@@ -5,7 +5,8 @@ rule all:
 	this rule currently only runs the make_desc_file and concatenate_files steps
 	'''
 	input:
-		cluster_file=expand(config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta', experiment=config['experiment_name'])
+		classify_second=expand(config['output_folder']+'/{experiment}_reads_to_domains.csv', experiment=config['experiment_name'])
+
 
 
 rule make_desc_file:
@@ -82,6 +83,8 @@ rule cluster_dbla:
 
 rule classify_dbla_first:
 	'''
+	This program is messy - it requires a trailing / in the output folder name
+	in order to send files to the desired output folder location.
 	'''
 	input:
 		cluster_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta'
@@ -91,7 +94,7 @@ rule classify_dbla_first:
 	output:
 		classify_first=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
 	shell:
-		'python /opt/programs/classifyDBLalpha/reads_to_domains/allocate_reads.py -r {input.cluster_file} -E {params.classify_threshold} -o {params.output_folder} --noUproc --splitIsolates'
+		'python /opt/programs/classifyDBLalpha/reads_to_domains/allocate_reads.py -r {input.cluster_file} -E {params.classify_threshold} -o {params.output_folder}/ --noUproc --splitIsolates'
 
 rule classify_dbla_second:
 	'''
@@ -100,7 +103,7 @@ rule classify_dbla_second:
 		classify_first=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
 	params:
 	output:
-		classify_second='{experiment}_reads_to_domains.csv'
+		classify_second=config['output_folder']+'/{experiment}_reads_to_domains.csv'
 	shell:
 		'python /opt/programs/classifyDBLalpha/reads_to_domains/reads_to_domains.py --hmm {input.classify_first} --out {output.classify_second}'
 
