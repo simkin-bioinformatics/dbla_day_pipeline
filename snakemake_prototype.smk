@@ -5,9 +5,11 @@ rule all:
 	this rule currently only runs the make_desc_file and concatenate_files steps
 	'''
 	input:
-		classify_second=expand(config['output_folder']+'/{experiment}_reads_to_domains.csv', experiment=config['experiment_name'])
-
-
+		#cleaned=expand(config['output_folder']+'/{experiment}_DBLa_cleaned.fasta', experiment=config['experiment_name']) #not sure if this name formatting exactly matches what clean step will output
+		#cluster_file=expand(config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta', experiment=config['experiment_name'])
+		#classify_first=expand(config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt', experiment=config['experiment_name'])
+		#classify_second=expand(config['output_folder']+'/{experiment}_reads_to_domains.csv', experiment=config['experiment_name'])
+		combined_dbla_file=expand(config['output_folder']+'/{experiment}_DBLa_binary_ups.csv', experiment=config['experiment_name'])
 
 rule make_desc_file:
 	'''
@@ -77,7 +79,8 @@ rule cluster_dbla:
 		cluster_percent_identity=config['cluster_percent_identity'],
 		cluster_cpus=config['cluster_cpus']
 	output:
-		cluster_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta'
+		cluster_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta',
+		binary_otu=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_otuTable_binary.txt'
 	shell:
 		'python /opt/clusterDBLa.py -o {params.output_folder} -r {input.cleaned} --perID {params.cluster_percent_identity} --cpu {params.cluster_cpus} --verbose'
 
@@ -113,7 +116,9 @@ rule combine_dbla:
 	has hardcoded inputs and outputs that need to accept snakemake arguments instead
 	'''
 	input:
-	params:
+		binary_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_otuTable_binary.txt',
+		ups_file=config['output_folder']+'/{experiment}_reads_to_domains.csv'
 	output:
+		combined_dbla_file=config['output_folder']+'/{experiment}_DBLa_binary_ups.csv'
 	shell:
-		'/opt/conda/envs/new_env/bin/Rscript combine_step.R'
+		'Rscript combine_step.R'

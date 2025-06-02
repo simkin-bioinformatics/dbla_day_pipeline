@@ -13,8 +13,8 @@ library(tidyverse)
 
 ### Load data
 #```{r}
-binary_example <-fread("Input_Step4/pool_combine123_DBLa_cleaned_renamed_otuTable_binary.txt", data.table = FALSE)
-ups_example <-fread("Input_Step4/pool_combine123_DBLa_reads_to_domains.csv", data.table = FALSE)
+binary_example <-fread(snakemake@input[["binary_file"]], data.table = FALSE)
+ups_example <-fread(snakemake@input[["ups_file"]], data.table = FALSE)
 #```
 
 ### Binary Example: Rename OTU to DBLa type
@@ -40,4 +40,4 @@ ups_example$Ups <- as.factor(ups_example$Ups)
 isolate_ups_example<-binary_example %>% inner_join(dplyr::select(ups_example, DBLa_type, Ups), by ="DBLa_type")
 isolate_ups_example <- isolate_ups_example %>% relocate(Ups, .after = DBLa_type)
 
-write.table(isolate_ups_example, file="pool_combine123_DBLa_binary_ups.csv", sep=",")
+write.table(isolate_ups_example, file=snakemake@output[["combined_dbla_file"]], sep=",")
