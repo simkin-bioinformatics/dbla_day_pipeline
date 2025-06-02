@@ -3,7 +3,7 @@ import argparse
 from subprocess import check_call
 import numpy as np
 
-USEARCH = "/DBLaCleaner/third_party/usearch8.1.1831"
+USEARCH = "/opt/programs/DBLaCleaner/third_party/usearch8.1.1831"
 
 def readFasta(fastafile):
 

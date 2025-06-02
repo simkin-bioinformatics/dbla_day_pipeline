@@ -5,7 +5,8 @@ rule all:
 	this rule currently only runs the make_desc_file and concatenate_files steps
 	'''
 	input:
-		catted_r1=expand(config['output_folder']+'/{experiment}_read1_concatenated.fastq', experiment=config['experiment_name']),
+		cluster_file=expand(config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta', experiment=config['experiment_name'])
+
 
 rule make_desc_file:
 	'''
@@ -40,8 +41,8 @@ rule concatenate_files:
 		R2_suffix=config['R2_suffix']
 	output:
 		temporary_prepend_folder=directory('{experiment}_temporary_prepended_files'),
-		catted_r1=config['output_folder']+'/{experiment}_read1_concatenated.fastq',
-		catted_r2=config['output_folder']+'/{experiment}_read2_concatenated.fastq'
+		catted_r1=config['output_folder']+'/{experiment}_concatenated_R1.fastq',
+		catted_r2=config['output_folder']+'/{experiment}_concatenated_R2.fastq'
 	script:
 		'scripts/prepend_barcodes.py'
 
@@ -49,55 +50,59 @@ rule clean_dbla:
 	'''
 	'''
 	input:
-		catted_r1=config['output_folder']+'/{experiment}_read1_concatenated.fastq',
-		catted_r2=config['output_folder']+'/{experiment}_read2_concatenated.fastq',
+		catted_r1=config['output_folder']+'/{experiment}_concatenated_R1.fastq',
+		catted_r2=config['output_folder']+'/{experiment}_concatenated_R2.fastq',
 		desc_file=config['output_folder']+'/MID_sample_mappings.desc'
 	params:
 		output_folder=config['output_folder'],
 		clean_percent_identity=config['clean_percent_identity'],
-		clean_cpus=config['clean_cpus']
+		clean_cpus=config['clean_cpus'],
+		experiment='{experiment}'
 	output:
-		cleaned=config['output_folder']+'/{experiment}_concatenated_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
+		cleaned=config['output_folder']+'/{experiment}_DBLa_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
 	shell:
-		'/opt/conda/envs/new_env/bin/python /opt/cleanDBLalpha.py -o {params.output_folder} -r {input.catted_r1} -R {input.catted_r2} -d {input.desc_file} --perID {params.clean_percent_identity} --cpu {params.clean_cpus} --verbose'
+		'''
+		python /opt/cleanDBLalpha.py -o {params.output_folder} -r {input.catted_r1} -R {input.catted_r2} -d {input.desc_file} --perID {params.clean_percent_identity} --cpu {params.clean_cpus} --verbose
+		mv {params.output_folder}/{params.experiment}_concatenated_R_DBLa_cleaned.fasta {params.output_folder}/{params.experiment}_DBLa_cleaned.fasta
+		'''
 
 rule cluster_dbla:
 	'''
 	'''
 	input:
-		cleaned=config['output_folder']+'/{experiment}_concatenated_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
+		cleaned=config['output_folder']+'/{experiment}_DBLa_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
 	params:
 		output_folder=config['output_folder'],
 		cluster_percent_identity=config['cluster_percent_identity'],
 		cluster_cpus=config['cluster_cpus']
 	output:
-		cluster_file=config['output_folder']+'/{experiment}_concatenated_cleaned_renamed_centroids.fasta'
+		cluster_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta'
 	shell:
-		'/opt/conda/envs/new_env/bin/python /opt/clusterDBLa.py -o {params.output_folder} -r {input.cleaned} --perID {params.cluster_percent_identity} --cpu {params.cluster_cpus} --verbose'
+		'python /opt/clusterDBLa.py -o {params.output_folder} -r {input.cleaned} --perID {params.cluster_percent_identity} --cpu {params.cluster_cpus} --verbose'
 
 rule classify_dbla_first:
 	'''
 	'''
 	input:
-		cluster_file=config['output_folder']+'/{experiment}_concatenated_cleaned_renamed_centroids.fasta'
+		cluster_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta'
 	params:
 		classify_threshold=config['classify_threshold'],
 		output_folder=config['output_folder']
 	output:
-		classify_first=config['output_folder']+'/{experiment}_concatenated_cleaned_renamed_centroids_nhmmOut.txt'
+		classify_first=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
 	shell:
-		'/opt/conda/envs/new_env/bin/python /classifyDBLalpha/reads_to_domains/allocate_reads.py -r {input.cluster_file} -E {params.classify_threshold} -o {params.output_folder} --noUproc --splitIsolates'
+		'python /opt/programs/classifyDBLalpha/reads_to_domains/allocate_reads.py -r {input.cluster_file} -E {params.classify_threshold} -o {params.output_folder} --noUproc --splitIsolates'
 
 rule classify_dbla_second:
 	'''
 	'''
 	input:
-		classify_first=config['output_folder']+'/{experiment}_concatenated_cleaned_renamed_centroids_nhmmOut.txt'
+		classify_first=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
 	params:
 	output:
 		classify_second='{experiment}_reads_to_domains.csv'
 	shell:
-		'/opt/conda/envs/new_env/bin/python /classifyDBLalpha/reads_to_domains/reads_to_domains.py --hmm {input.classify_first} --out {output.classify_second}'
+		'python /opt/programs/classifyDBLalpha/reads_to_domains/reads_to_domains.py --hmm {input.classify_first} --out {output.classify_second}'
 
 rule combine_dbla:
 	'''
