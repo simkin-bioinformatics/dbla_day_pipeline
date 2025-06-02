@@ -1,0 +1,64 @@
+Bootstrap: docker
+From: amd64/ubuntu:24.04
+# Bootstrap: localimage
+# From: dbla.sif
+
+%files
+    cleanDBLalpha.py /opt/cleanDBLalpha.py
+    clusterDBLa.py /opt/clusterDBLa.py
+
+%post
+
+    #install apt packages
+    apt update \
+    && apt upgrade -yq \
+    && apt install -yq micro hmmer wget git fastqc ncbi-blast+ locales
+
+    #install mamba for some key missing packages
+    export PATH=/opt/conda_env/bin:/opt/conda/bin:$PATH
+    wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+    bash Miniforge3.sh -bfp "/opt/conda" 
+    rm Miniforge3.sh
+
+    #clone repos that have useful data/programs
+    mkdir /opt/programs && cd /opt/programs
+    git clone https://github.com/UniMelb-Day-Lab/tutorialDBLalpha.git
+    git clone https://github.com/UniMelb-Day-Lab/DBLaCleaner.git
+    git clone https://github.com/PapenfussLab/Mungo.git
+    git clone https://github.com/UniMelb-Day-Lab/classifyDBLalpha.git
+
+    #install mamba packages (useful for getting outdated versions of packages to
+    #work with each other)
+    conda config --system --set show_channel_urls true
+    mamba create -c conda-forge -c bioconda -p /opt/conda_env -y \
+            python=2.7 \
+            flexbar=2.5.0 \
+            numpy \
+            r-tidyverse \
+            r-data.table
+    mamba create -c conda-forge -c bioconda -p /opt/snakemake -y snakemake
+    mamba clean -t --yes
+
+    #install Mungo (for reading fasta files)
+    cd /opt/programs/Mungo
+    python setup.py install
+
+    # set environment locale
+    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+    echo "LANG=en_US.UTF-8" > /etc/locale.conf
+    echo "LC_ALL=en_US.UTF-8" >> /etc/environment
+    echo "LANGUAGE=en_US.UTF-8" >> /etc/environment
+    locale-gen en_US.UTF-8
+    update-locale LANG=en_US.UTF-8
+
+#################################################################
+##                     Environment Section                     ##
+#################################################################
+%environment
+    export PATH=/opt/bin:/opt/conda_env/bin:/opt/snakemake/bin:$PATH
+    export XDG_RUNTIME_DIR=""
+    export DEBIAN_FRONTEND=noninteractive
+    export LANG=en_US.UTF-8
+    export LANGUAGE="en_US.UTF-8"
+    export LC_ALL="en_US.UTF-8"
+    export PYTHONNOUSERSITE=1
