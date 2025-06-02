@@ -1,5 +1,6 @@
 input_folder: "seekdeep_input_files"
 output_folder: "prototype_output"
+sif_file: "DBLa_clean_cluster_classify_combine.sif"
 R1_suffix: '_L001_R1_001'
 R2_suffix: '_L001_R2_001'
 experiment_name: 'dbla-controls'
