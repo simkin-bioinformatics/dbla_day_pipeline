@@ -1,0 +1,4 @@
+.snakemake
+*.sif
+seekdeep_input_files
+prototype_output

@@ -21,11 +21,11 @@ rule make_desc_file:
 	this.
 	'''
 	params:
-		input_folder=config['input_folder'],
+		input_folder="/opt/input",
 		R1_suffix=config['R1_suffix'],
 		R2_suffix=config['R2_suffix']
 	output:
-		desc_file=config['output_folder']+'/MID_sample_mappings.desc'
+		desc_file='/opt/output/MID_sample_mappings.desc'
 	script:
 		'scripts/create_desc_file.py'
 
@@ -37,15 +37,15 @@ rule concatenate_files:
 	'''
 	input:
 		mid_file=config['MID_file'],
-		seekdeep_fastq_directory=config['input_folder'],
-		desc_file=config['output_folder']+'/MID_sample_mappings.desc'
+		seekdeep_fastq_directory='/opt/input',
+		desc_file='/opt/output/MID_sample_mappings.desc'
 	params:
 		R1_suffix=config['R1_suffix'],
 		R2_suffix=config['R2_suffix']
 	output:
-		temporary_prepend_folder=directory('{experiment}_temporary_prepended_files'),
-		catted_r1=config['output_folder']+'/{experiment}_concatenated_R1.fastq',
-		catted_r2=config['output_folder']+'/{experiment}_concatenated_R2.fastq'
+		temporary_prepend_folder=directory('/opt/output/{experiment}_temporary_prepended_files'),
+		catted_r1='/opt/output/{experiment}_read1_concatenated.fastq',
+		catted_r2='/opt/output/{experiment}_read2_concatenated.fastq'
 	script:
 		'scripts/prepend_barcodes.py'
 
@@ -53,16 +53,16 @@ rule clean_dbla:
 	'''
 	'''
 	input:
-		catted_r1=config['output_folder']+'/{experiment}_concatenated_R1.fastq',
-		catted_r2=config['output_folder']+'/{experiment}_concatenated_R2.fastq',
-		desc_file=config['output_folder']+'/MID_sample_mappings.desc'
+		catted_r1='/opt/output/{experiment}_read1_concatenated.fastq',
+		catted_r2='/opt/output/{experiment}_read2_concatenated.fastq',
+		desc_file='/opt/output/MID_sample_mappings.desc'
 	params:
-		output_folder=config['output_folder'],
+		output_folder='/opt/output',
 		clean_percent_identity=config['clean_percent_identity'],
 		clean_cpus=config['clean_cpus'],
 		experiment='{experiment}'
 	output:
-		cleaned=config['output_folder']+'/{experiment}_DBLa_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
+		cleaned='/opt/output'+'/{experiment}_concatenated_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
 	shell:
 		'''
 		python /opt/cleanDBLalpha.py -o {params.output_folder} -r {input.catted_r1} -R {input.catted_r2} -d {input.desc_file} --perID {params.clean_percent_identity} --cpu {params.clean_cpus} --verbose
@@ -73,14 +73,14 @@ rule cluster_dbla:
 	'''
 	'''
 	input:
-		cleaned=config['output_folder']+'/{experiment}_DBLa_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
+		cleaned='/opt/output'+'/{experiment}_concatenated_cleaned.fasta' #not sure if this name formatting exactly matches what clean step will output
 	params:
-		output_folder=config['output_folder'],
+		output_folder='/opt/output',
 		cluster_percent_identity=config['cluster_percent_identity'],
 		cluster_cpus=config['cluster_cpus']
 	output:
-		cluster_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta',
-		binary_otu=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_otuTable_binary.txt'
+		cluster_file='/opt/output'+'/{experiment}_concatenated_cleaned_renamed_centroids.fasta'
+    binary_otu='/opt/output/{experiment}_DBLa_cleaned_renamed_otuTable_binary.txt'
 	shell:
 		'python /opt/clusterDBLa.py -o {params.output_folder} -r {input.cleaned} --perID {params.cluster_percent_identity} --cpu {params.cluster_cpus} --verbose'
 
@@ -90,12 +90,12 @@ rule classify_dbla_first:
 	in order to send files to the desired output folder location.
 	'''
 	input:
-		cluster_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids.fasta'
+		cluster_file='/opt/output'+'/{experiment}_concatenated_cleaned_renamed_centroids.fasta'
 	params:
 		classify_threshold=config['classify_threshold'],
-		output_folder=config['output_folder']
+		output_folder='/opt/output'
 	output:
-		classify_first=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
+		classify_first='/opt/output/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
 	shell:
 		'python /opt/programs/classifyDBLalpha/reads_to_domains/allocate_reads.py -r {input.cluster_file} -E {params.classify_threshold} -o {params.output_folder}/ --noUproc --splitIsolates'
 
@@ -103,7 +103,7 @@ rule classify_dbla_second:
 	'''
 	'''
 	input:
-		classify_first=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
+		classify_first=config['output_folder']+'/opt/output/{experiment}_DBLa_cleaned_renamed_centroids_nhmmOut.txt'
 	params:
 	output:
 		classify_second=config['output_folder']+'/{experiment}_reads_to_domains.csv'
@@ -116,9 +116,9 @@ rule combine_dbla:
 	ups_file is the binary_otu output of rule cluster_dbla
 	'''
 	input:
-		binary_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_otuTable_binary.txt',
-		ups_file=config['output_folder']+'/{experiment}_reads_to_domains.csv'
+		binary_file='/opt/output/{experiment}_DBLa_cleaned_renamed_otuTable_binary.txt',
+		ups_file='/opt/output/{experiment}_reads_to_domains.csv'
 	output:
-		combined_dbla_file=config['output_folder']+'/{experiment}_DBLa_binary_ups.csv'
+		combined_dbla_file='/opt/output/{experiment}_DBLa_binary_ups.csv'
 	shell:
 		'Rscript combine_step.R'
