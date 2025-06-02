@@ -112,8 +112,8 @@ rule classify_dbla_second:
 
 rule combine_dbla:
 	'''
-	this script needs extensive modification - the underlying Rscript currently
-	has hardcoded inputs and outputs that need to accept snakemake arguments instead
+	binary_file is the classify_second output of rule classify_dbla_second.
+	ups_file is the binary_otu output of rule cluster_dbla
 	'''
 	input:
 		binary_file=config['output_folder']+'/{experiment}_DBLa_cleaned_renamed_otuTable_binary.txt',
