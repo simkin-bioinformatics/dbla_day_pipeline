@@ -120,5 +120,5 @@ rule combine_dbla:
 		ups_file=config['output_folder']+'/{experiment}_reads_to_domains.csv'
 	output:
 		combined_dbla_file=config['output_folder']+'/{experiment}_DBLa_binary_ups.csv'
-	shell:
-		'Rscript combine_step.R'
+	script:
+		'scripts/combine_step.R'
