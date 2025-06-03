@@ -40,4 +40,4 @@ ups_example$Ups <- as.factor(ups_example$Ups)
 isolate_ups_example<-binary_example %>% inner_join(dplyr::select(ups_example, DBLa_type, Ups), by ="DBLa_type")
 isolate_ups_example <- isolate_ups_example %>% relocate(Ups, .after = DBLa_type)
 
-write.table(isolate_ups_example, file=snakemake@output[["combined_dbla_file"]], sep=",")
+write.table(isolate_ups_example, file=snakemake@output[["combined_dbla_file"]], sep=",", row.names=F)
