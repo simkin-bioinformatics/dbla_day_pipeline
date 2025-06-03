@@ -5,6 +5,7 @@ sudo singularity build DBLa_clean_cluster_classify_combine.sif DBLa_clean_cluste
 
 # Edit the config file
 Open snakemake_prototype.yaml and edit it.  For initial testing purposes none of the values need to be changed
+Note that you can't currently choose an input folder with more than 153 samples
 
 # Run the bash script
 ```sh
