@@ -40,4 +40,4 @@ establish_binds () {
 
 establish_binds
 mkdir -p $output_folder
-singularity run $singularity_bindings $sif_file snakemake -s snakemake_prototype.smk -c 30
+singularity run $singularity_bindings $sif_file snakemake -s snakemake_prototype.smk -c $clean_cpus
