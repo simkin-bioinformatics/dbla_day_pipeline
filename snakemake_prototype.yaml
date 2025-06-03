@@ -11,7 +11,7 @@ experiment_name: 'dbla-controls'
 # path to output folder (will be created by the pipeline if it doesn't exist yet)
 output_folder: "prototype_output"
 
-# settings for clean, cluster, and combine steps
+# settings for clean, cluster, and classify steps
 clean_percent_identity: 0.96
 cluster_percent_identity: 0.96
 clean_cpus: 8
