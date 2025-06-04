@@ -1,4 +1,4 @@
-configfile: 'snakemake_prototype.yaml'
+configfile: '/opt/working_dir/snakemake_prototype.yaml'
 
 rule all:
 	'''
@@ -20,6 +20,8 @@ rule make_desc_file:
 	but more testing is probably needed before implementing a solution like
 	this.
 	'''
+	input:
+		mid_file=config['MID_file']
 	params:
 		input_folder='/opt/input',
 		R1_suffix=config['R1_suffix'],
@@ -27,7 +29,7 @@ rule make_desc_file:
 	output:
 		desc_file='/opt/output/{experiment}_MID_sample_mappings.desc'
 	script:
-		'scripts/create_desc_file.py'
+		'/opt/working_dir/scripts/create_desc_file.py'
 
 rule concatenate_files:
 	'''
@@ -43,11 +45,11 @@ rule concatenate_files:
 		R1_suffix=config['R1_suffix'],
 		R2_suffix=config['R2_suffix']
 	output:
-		temporary_prepend_folder=directory('/opt/output/{experiment}_temporary_prepended_files'),
+		temporary_prepend_folder=temp(directory('/opt/output/{experiment}_temporary_prepended_files')),
 		catted_r1='/opt/output/{experiment}_concatenated_R1.fastq',
 		catted_r2='/opt/output/{experiment}_concatenated_R2.fastq',
 	script:
-		'scripts/prepend_barcodes.py'
+		'/opt/working_dir/scripts/prepend_barcodes.py'
 
 rule clean_dbla:
 	'''
@@ -120,4 +122,4 @@ rule combine_dbla:
 	output:
 		combined_dbla_file='/opt/output/{experiment}_DBLa_binary_ups.csv'
 	script:
-		'scripts/combine_step.R'
+		'/opt/working_dir/scripts/combine_step.R'

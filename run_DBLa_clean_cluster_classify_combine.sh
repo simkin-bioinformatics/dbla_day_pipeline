@@ -34,10 +34,10 @@ establish_binds () {
     output_folder=$(rmwt $output_folder)
     sif_file=$(rmwt $sif_file)
 
-    singularity_bindings="-B $input_folder:/opt/input -B $output_folder:/opt/output"
+    singularity_bindings="-B $input_folder:/opt/input -B $output_folder:/opt/output -B $newhome:/opt/working_dir"
 }
 
 
 establish_binds
 mkdir -p $output_folder
-singularity run $singularity_bindings $sif_file snakemake -s snakemake_prototype.smk -c $clean_cpus
+singularity run $singularity_bindings $sif_file snakemake -s /opt/working_dir/snakemake_prototype.smk -c $clean_cpus

@@ -9,7 +9,7 @@ R2_suffix: '_L001_R2_001'
 experiment_name: 'dbla-controls'
 
 # path to output folder (will be created by the pipeline if it doesn't exist yet)
-output_folder: "prototype_output"
+output_folder: "prototype_output_v3"
 
 # settings for clean, cluster, and classify steps
 clean_percent_identity: 0.96

@@ -4,11 +4,13 @@ files. Useful for Karen Day's pipeline that expects a desc file and
 un-demultiplexed input data.
 '''
 import os
+MID_file=snakemake.input.mid_file
 fastq_directory = snakemake.params.input_folder
 shared_suffix_R1=snakemake.params.R1_suffix
 shared_suffix_R2=snakemake.params.R2_suffix
 desc_file = open(snakemake.output.desc_file, 'w')
 desc_file.write("#ID-Number  AF-MID  BR-MID\n")
+MID_dict = dict([line.strip().split('\t') for line in open('MIDs.tsv')])
 
 def list_files_in_directory(directory_path):
     """Lists all files in the specified directory.
@@ -39,8 +41,9 @@ for file in file_list:
     if sample_name not in sample_name_list:
         sample_name_list.append(sample_name)
 
-count = 1
-for sample in sample_name_list:
-    desc_file.write(f"{sample}\t{count}\t{count}\n")
-    count+=1
+barcodes=len(MID_dict)
+for sample_number, sample in enumerate(sample_name_list):
+    first_barcode=(sample_number//barcodes)+1
+    second_barcode=(sample_number%barcodes)+1
+    desc_file.write(f"{sample}\t{first_barcode}\t{second_barcode}\n")
 # print(file_list)

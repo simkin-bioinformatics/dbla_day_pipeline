@@ -41,9 +41,18 @@ def list_files_in_directory(directory_path):
 		print(f"An error occurred: {e}")
 		return []
 
-
-def prepend_barcodes(desc_mapping_file, fastq_directory, edited_fastq_directory):
+def prepend_barcodes(input_fastq_file, output_fastq_file, barcode):
 	import gzip
+	original_fastq = gzip.open(input_fastq_file, mode='rt')
+	edited_fastq = open(output_fastq_file, 'w')
+	for line_number, line in enumerate(original_fastq):
+		if line_number%4==1:
+			edited_fastq.write(barcode)
+		elif line_number%4==3:
+			edited_fastq.write('C'*len(barcode))
+		edited_fastq.write(line)
+
+def match_barcodes(desc_mapping_file, fastq_directory, edited_fastq_directory):
 	import subprocess
 	file_list = list_files_in_directory(fastq_directory)
 	subprocess.call(['mkdir', edited_fastq_directory])
@@ -51,17 +60,19 @@ def prepend_barcodes(desc_mapping_file, fastq_directory, edited_fastq_directory)
 		if '#' not in line:
 			line = line.strip().split()
 			sample_id = line[0]
-			af_mid = line[1]
 			for file in file_list:
-				if sample_id in file:
-					original_fastq = gzip.open(f"{fastq_directory}/{file}", mode='rt')
-					edited_fastq = open(f"{edited_fastq_directory}/{file.replace('.fastq.gz', '_edited.fastq')}", 'w')
-					for line_number, line in enumerate(original_fastq):
-						if line_number%4==1:
-							edited_fastq.write(MIDIC[af_mid])
-						elif line_number%4==3:
-							edited_fastq.write('C'*len(MIDIC[af_mid]))
-						edited_fastq.write(line)
+				file_id = file.replace(r1_suffix+'.fastq.gz', '')
+				file_id = file_id.replace(r2_suffix+'.fastq.gz', '')
+				if sample_id==file_id:
+					input_fastq_file=f'{fastq_directory}/{file}'
+					output_fastq_file=f"{edited_fastq_directory}/{file.replace('.fastq.gz', '_edited.fastq')}"
+					if file.endswith(r1_suffix+'.fastq.gz'):
+						barcode = MIDIC[line[1]]
+					elif file.endswith(r2_suffix+'.fastq.gz'):
+						barcode = MIDIC[line[2]]
+					else:
+						print(file, 'does not end with', r1_suffix, 'or', r2_suffix)
+					prepend_barcodes(input_fastq_file, output_fastq_file, barcode)
 
 def concatenate_files(edited_fastq_directory, catted_r1, catted_r2, r1_suffix, r2_suffix):
 	edited_file_list = list_files_in_directory(edited_fastq_directory)
@@ -76,5 +87,5 @@ def concatenate_files(edited_fastq_directory, catted_r1, catted_r2, r1_suffix, r
 			for line in open(f"{edited_fastq_directory}/{file}",'r'):
 				concatenated_read2.write(line)
 
-prepend_barcodes(desc_mapping_file, fastq_directory, edited_fastq_directory)
+match_barcodes(desc_mapping_file, fastq_directory, edited_fastq_directory)
 concatenate_files(edited_fastq_directory, catted_r1, catted_r2, r1_suffix, r2_suffix)
