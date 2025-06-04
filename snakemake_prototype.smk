@@ -21,7 +21,7 @@ rule make_desc_file:
 	this.
 	'''
 	input:
-		mid_file=config['MID_file']
+		mid_file='/opt/working_dir/'+config['MID_file']
 	params:
 		input_folder='/opt/input',
 		R1_suffix=config['R1_suffix'],
@@ -38,7 +38,7 @@ rule concatenate_files:
 	currently hard-coded for specific MIDs so don't change these yet.
 	'''
 	input:
-		mid_file=config['MID_file'],
+		mid_file='/opt/working_dir/'+config['MID_file'],
 		seekdeep_fastq_directory='/opt/input',
 		desc_file='/opt/output/{experiment}_MID_sample_mappings.desc'
 	params:

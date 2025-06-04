@@ -18,7 +18,7 @@ catted_r2 = snakemake.output.catted_r2
 r1_suffix=snakemake.params.R1_suffix
 r2_suffix=snakemake.params.R2_suffix
 
-MIDIC = dict([line.strip().split('\t') for line in open('MIDs.tsv')])
+MIDIC = dict([line.strip().split('\t') for line in open(MID_file)])
 
 def list_files_in_directory(directory_path):
 	import os

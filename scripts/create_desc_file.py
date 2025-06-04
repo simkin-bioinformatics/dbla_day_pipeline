@@ -10,7 +10,7 @@ shared_suffix_R1=snakemake.params.R1_suffix
 shared_suffix_R2=snakemake.params.R2_suffix
 desc_file = open(snakemake.output.desc_file, 'w')
 desc_file.write("#ID-Number  AF-MID  BR-MID\n")
-MID_dict = dict([line.strip().split('\t') for line in open('MIDs.tsv')])
+MID_dict = dict([line.strip().split('\t') for line in open(MID_file)])
 
 def list_files_in_directory(directory_path):
     """Lists all files in the specified directory.
